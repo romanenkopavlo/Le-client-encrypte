@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
+    id ("com.github.johnrengelman.shadow") version "8.1.1"
+    id("edu.sc.seis.launch4j") version "3.0.5"
+}
+
+tasks {
+    shadowJar {
+        archiveClassifier.set("") // Configure le JAR pour ne pas avoir de suffixe
+        manifest {
+            attributes["Main-Class"] = "com.astier.bts.client_tcp_prof.HelloApplication" // Classe principale de l'application
+        }
+    }
+
+    launch4j {
+        outfile.set("Client_TCP_Full.exe")
+        mainClassName.set("com.astier.bts.client_tcp_prof.HelloApplication")
+        headerType.set("gui")
+        jarTask = tasks.shadowJar
+        icon.set("${projectDir}/icons/icon.ico")
+    }
+
+}
+
+group 'com.astier.bts'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.10.2'
+}
+
+sourceCompatibility = '21'
+targetCompatibility = '21'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainModule = 'com.astier.bts.client_tcp_prof'
+    mainClass = 'com.astier.bts.client_tcp_prof.HelloApplication'
+}
+
+javafx {
+    version = '21'
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+dependencies {
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jlink {
+    imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'app'
+    }
+}
+
+jlinkZip {
+    group = 'distribution'
+}
