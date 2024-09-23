@@ -8,7 +8,7 @@ package com.astier.bts.client_tcp_prof.tcp;
 
 import com.astier.bts.client_tcp_prof.HelloController;
 import com.astier.bts.client_tcp_prof.aes.Aes_cbc;
-import com.astier.bts.client_tcp_prof.aes.Outils;
+import com.astier.bts.client_tcp_prof.diffieHellman.DiffieHellman;
 import javafx.application.Platform;
 
 import java.io.*;
@@ -28,14 +28,16 @@ public class TCP extends Thread {
     InetAddress serveur;
     Socket socket;
     boolean marche = false;
-    final static String motDePasse = "azertyuiopqsdfgh";
-    final static String iv = "hgfdsqpoiuytreza";
+    static String motDePasse;
+    static String iv;
     Aes_cbc aesCbc;
     byte [] motDePasseBytes;
     byte [] ivBytes;
-    byte [] tempTable = new byte[65000];
-    OutputStream out;
-    InputStream in;
+    byte [] tempTable = new byte[65535];
+    public OutputStream out;
+    public InputStream in;
+    DiffieHellman diffieHellman;
+    public byte[] cles;
     HelloController fxmlCont;
 
     public TCP() {
@@ -45,19 +47,22 @@ public class TCP extends Thread {
         this.port = port;
         this.serveur = serveur;
         this.fxmlCont = fxmlCont;
-
-        this.motDePasseBytes = Outils.normalizeChaine(motDePasse, 16);
-        this.ivBytes = Outils.normalizeChaine(iv, 16);
-        this.aesCbc = new Aes_cbc(motDePasseBytes, ivBytes);
-
         System.out.println("@ serveur: " + serveur + " port: " + port);
     }
 
-    public void connection() throws IOException {
+    public void connection() throws IOException, InterruptedException {
         if (!this.isAlive()) {
             socket = new Socket(serveur, port);
             out = socket.getOutputStream();
             in = socket.getInputStream();
+
+
+            diffieHellman = new DiffieHellman(this, 1024);
+            cles = diffieHellman.recuperation();
+            motDePasseBytes = Arrays.copyOfRange(cles, 1, 17);
+            ivBytes = Arrays.copyOfRange(cles, 17, 33);
+
+            aesCbc = new Aes_cbc(motDePasseBytes, ivBytes);
             this.start();
             marche = true;
         }

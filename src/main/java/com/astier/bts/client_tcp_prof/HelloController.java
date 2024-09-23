@@ -8,6 +8,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.shape.Circle;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -28,9 +29,6 @@ public class HelloController implements Initializable {
     String adresse;
     String port;
 
-    // ip: 10.0.0.175
-    // port: 8391
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         voyant.setFill(RED);
@@ -46,8 +44,7 @@ public class HelloController implements Initializable {
         connecter.setOnMouseClicked(event -> {
             try {
                 connecter();
-
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -74,7 +71,7 @@ public class HelloController implements Initializable {
         }
     }
 
-    private void connecter() throws IOException {
+    private void connecter() throws IOException, InterruptedException {
         adresse = TextFieldIP.getText();
         port = TextFieldPort.getText();
         if (!adresse.isEmpty() && !port.isEmpty()) {
