@@ -71,7 +71,7 @@ public class TCP extends Thread {
         socket.close();
     }
 
-    public void requette(String laRequette) throws IOException, InterruptedException {
+    public void requette(String laRequette) throws IOException {
         if (laRequette.equalsIgnoreCase("exit")) {
             laRequette = laRequette.trim();
             byte [] requetteEncrypte = aesCbc.cryptage(laRequette.getBytes());
