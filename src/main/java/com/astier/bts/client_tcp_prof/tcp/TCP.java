@@ -14,6 +14,8 @@ import javafx.application.Platform;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 
 import static javafx.scene.paint.Color.RED;
@@ -26,13 +28,14 @@ public class TCP extends Thread {
     InetAddress serveur;
     Socket socket;
     boolean marche = false;
-    final static String motDePasse = "abcdefgh12345678";
-    final static String iv = "hijklmnopqrstuv";
+    final static String motDePasse = "azertyuiopqsdfgh";
+    final static String iv = "hgfdsqpoiuytreza";
     Aes_cbc aesCbc;
     byte [] motDePasseBytes;
     byte [] ivBytes;
-    PrintStream out;
-    BufferedReader in;
+    byte [] tempTable = new byte[65000];
+    OutputStream out;
+    InputStream in;
     HelloController fxmlCont;
 
     public TCP() {
@@ -53,8 +56,8 @@ public class TCP extends Thread {
     public void connection() throws IOException {
         if (!this.isAlive()) {
             socket = new Socket(serveur, port);
-            out = new PrintStream(socket.getOutputStream());
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = socket.getOutputStream();
+            in = socket.getInputStream();
             this.start();
             marche = true;
         }
@@ -87,9 +90,10 @@ public class TCP extends Thread {
         while (marche) {
             try {
                 String message;
-                byte[] requetteEncrypte = in.readLine().getBytes();
-                byte[] decryptedResponse = aesCbc.decryptage(requetteEncrypte);
-                message = new String(decryptedResponse);
+                int temp = in.read(tempTable);
+                byte[] tableADecrypter = Arrays.copyOfRange(tempTable, 0, temp);
+                byte[] decryptedResponse = aesCbc.decryptage(tableADecrypter);
+                message = new String(decryptedResponse, StandardCharsets.UTF_8);
                 updateMessage(message);
             } catch (IOException ignored) {}
         }

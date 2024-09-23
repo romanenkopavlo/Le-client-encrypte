@@ -29,7 +29,7 @@ public class HelloController implements Initializable {
     String port;
 
     // ip: 10.0.0.175
-    // port: 7297
+    // port: 8391
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
