@@ -3,12 +3,9 @@ package com.astier.bts.client_tcp_prof.diffieHellman;
 import com.astier.bts.client_tcp_prof.tcp.TCP;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Random;
 
 public class DiffieHellman {
     BigInteger a, p, g, B, A, K;
@@ -33,7 +30,7 @@ public class DiffieHellman {
         Thread.sleep(100);
         A = g.modPow(a, p);
         tcp.out.write(A.toByteArray());
-
+        
         int taille_B = tcp.in.read(bytes_B);
         B = new BigInteger(Arrays.copyOfRange(bytes_B, 0, taille_B));
         K = B.modPow(a, p);

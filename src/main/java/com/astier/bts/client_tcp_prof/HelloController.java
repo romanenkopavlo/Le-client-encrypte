@@ -9,9 +9,7 @@ import javafx.scene.shape.Circle;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.InetAddress;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ResourceBundle;
 import static javafx.scene.paint.Color.*;
 
@@ -57,6 +55,58 @@ public class HelloController implements Initializable {
             }
         });
 
+        try {
+            setServeurUDP();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void setServeurUDP() throws IOException, InterruptedException {
+        InetAddress inetAddress = InetAddress.getByName("224.0.0.250");
+        int portTCP = 5555;
+        int portUDP = 5556;
+        byte ttl = 60;
+        byte[] data = "Tu es qui?".getBytes();
+        byte[] bufferResponse = new byte[512];
+        MulticastSocket multicastSocket = new MulticastSocket();
+
+        Response response = new Response(inetAddress, portTCP, portUDP);
+        DatagramSocket socketUDP = new DatagramSocket(response.port_UDP());
+        DatagramPacket datagramPacket1 = new DatagramPacket(bufferResponse, bufferResponse.length);
+        System.out.println("Attente reponse...");
+
+        new Thread(() -> {
+            try {
+                socketUDP.receive(datagramPacket1);
+                System.out.println("Reponse UDP");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+
+        multicastSocket.setTimeToLive(ttl);
+        DatagramPacket datagramPacket2 = new DatagramPacket(data, data.length, response.url(), response.port_TCP());
+        multicastSocket.send(datagramPacket2);
+        Thread.sleep(100);
+        multicastSocket.close();
+
+        recupererDesParametres(datagramPacket1);
+    }
+
+    private void recupererDesParametres(DatagramPacket dp) {
+        String[] paramConfig;
+        System.out.println("Traitement reponse");
+        String s = new String(dp.getData(), 0, dp.getLength());
+        paramConfig = s.split(";");
+        System.out.println(
+                "URL: " + paramConfig[0]
+                        + "; TCP port: " + paramConfig[1]
+                        + "; UDP port: " + paramConfig[2]
+        );
+
+        TextFieldIP.setText(paramConfig[0]);
+        TextFieldPort.setText(paramConfig[1]);
     }
 
     private void envoyer() throws IOException, InterruptedException {
